@@ -113,5 +113,5 @@ func TestMaxDepth(t *testing.T) {
 	}
 
 	_, err := validator.Validate(&schema, nil)
-	assert.Equal(t, err, jsl.MaxDepthExceededErr)
+	assert.Equal(t, err, jsl.ErrMaxDepthExceeded)
 }

@@ -30,7 +30,7 @@ func TestVerifyAndForm(t *testing.T) {
 		{
 			`{"ref":""}`,
 			jsl.Schema{Ref: strptr("")},
-			jsl.NoSuchDefinitionErr(""),
+			jsl.ErrNoSuchDefinition(""),
 			jsl.FormRef,
 		},
 		{
@@ -49,7 +49,7 @@ func TestVerifyAndForm(t *testing.T) {
 				Ref:         strptr(""),
 				Type:        jsl.TypeBoolean,
 			},
-			jsl.InvalidFormErr,
+			jsl.ErrInvalidForm,
 			jsl.FormRef,
 		},
 		{
@@ -61,19 +61,19 @@ func TestVerifyAndForm(t *testing.T) {
 		{
 			`{"type":"nonsense"}`,
 			jsl.Schema{Type: "nonsense"},
-			jsl.InvalidTypeErr("nonsense"),
+			jsl.ErrInvalidType("nonsense"),
 			jsl.FormType,
 		},
 		{
 			`{"type":"boolean","enum":[]}`,
 			jsl.Schema{Type: jsl.TypeBoolean, Enum: []string{}},
-			jsl.InvalidFormErr,
+			jsl.ErrInvalidForm,
 			jsl.FormType,
 		},
 		{
 			`{"enum":["a","a"]}`,
 			jsl.Schema{Enum: []string{"a", "a"}},
-			jsl.RepeatedEnumValueErr("a"),
+			jsl.ErrRepeatedEnumValue("a"),
 			jsl.FormEnum,
 		},
 		{
@@ -85,19 +85,19 @@ func TestVerifyAndForm(t *testing.T) {
 		{
 			`{"enum":[],"properties":{}}`,
 			jsl.Schema{Enum: []string{}, RequiredProperties: map[string]jsl.Schema{}},
-			jsl.InvalidFormErr,
+			jsl.ErrInvalidForm,
 			jsl.FormEnum,
 		},
 		{
 			`{"enum":[],"elements":{}}`,
 			jsl.Schema{Enum: []string{}, Elements: &jsl.Schema{}},
-			jsl.InvalidFormErr,
+			jsl.ErrInvalidForm,
 			jsl.FormEnum,
 		},
 		{
 			`{"elements":{"ref":""}}`,
 			jsl.Schema{Elements: &jsl.Schema{Ref: strptr("")}},
-			jsl.NoSuchDefinitionErr(""),
+			jsl.ErrNoSuchDefinition(""),
 			jsl.FormElements,
 		},
 		{
@@ -109,13 +109,13 @@ func TestVerifyAndForm(t *testing.T) {
 		{
 			`{"elements":{},"properties":{}}`,
 			jsl.Schema{Elements: &jsl.Schema{}, RequiredProperties: map[string]jsl.Schema{}},
-			jsl.InvalidFormErr,
+			jsl.ErrInvalidForm,
 			jsl.FormElements,
 		},
 		{
 			`{"elements":{},"optionalProperties":{}}`,
 			jsl.Schema{Elements: &jsl.Schema{}, OptionalProperties: map[string]jsl.Schema{}},
-			jsl.InvalidFormErr,
+			jsl.ErrInvalidForm,
 			jsl.FormElements,
 		},
 		{
@@ -124,7 +124,7 @@ func TestVerifyAndForm(t *testing.T) {
 				RequiredProperties: map[string]jsl.Schema{"a": jsl.Schema{}},
 				OptionalProperties: map[string]jsl.Schema{"a": jsl.Schema{}},
 			},
-			jsl.RepeatedPropertyErr("a"),
+			jsl.ErrRepeatedProperty("a"),
 			jsl.FormProperties,
 		},
 		{
@@ -132,7 +132,7 @@ func TestVerifyAndForm(t *testing.T) {
 			jsl.Schema{
 				RequiredProperties: map[string]jsl.Schema{"a": jsl.Schema{Ref: strptr("")}},
 			},
-			jsl.NoSuchDefinitionErr(""),
+			jsl.ErrNoSuchDefinition(""),
 			jsl.FormProperties,
 		},
 		{
@@ -140,7 +140,7 @@ func TestVerifyAndForm(t *testing.T) {
 			jsl.Schema{
 				OptionalProperties: map[string]jsl.Schema{"a": jsl.Schema{Ref: strptr("")}},
 			},
-			jsl.NoSuchDefinitionErr(""),
+			jsl.ErrNoSuchDefinition(""),
 			jsl.FormProperties,
 		},
 		{
@@ -158,13 +158,13 @@ func TestVerifyAndForm(t *testing.T) {
 				RequiredProperties: map[string]jsl.Schema{},
 				Values:             &jsl.Schema{},
 			},
-			jsl.InvalidFormErr,
+			jsl.ErrInvalidForm,
 			jsl.FormProperties,
 		},
 		{
 			`{"values":{"ref":""}}`,
 			jsl.Schema{Values: &jsl.Schema{Ref: strptr("")}},
-			jsl.NoSuchDefinitionErr(""),
+			jsl.ErrNoSuchDefinition(""),
 			jsl.FormValues,
 		},
 		{
@@ -179,7 +179,7 @@ func TestVerifyAndForm(t *testing.T) {
 				Values:        &jsl.Schema{},
 				Discriminator: jsl.Discriminator{Mapping: map[string]jsl.Schema{}},
 			},
-			jsl.InvalidFormErr,
+			jsl.ErrInvalidForm,
 			jsl.FormValues,
 		},
 		{
@@ -189,7 +189,7 @@ func TestVerifyAndForm(t *testing.T) {
 					"": jsl.Schema{},
 				}},
 			},
-			jsl.NonPropertiesMappingErr,
+			jsl.ErrNonPropertiesMapping,
 			jsl.FormDiscriminator,
 		},
 		{
@@ -206,7 +206,7 @@ func TestVerifyAndForm(t *testing.T) {
 					},
 				},
 			},
-			jsl.RepeatedTagInPropertiesErr("a"),
+			jsl.ErrRepeatedTagInProperties("a"),
 			jsl.FormDiscriminator,
 		},
 		{
@@ -223,7 +223,7 @@ func TestVerifyAndForm(t *testing.T) {
 					},
 				},
 			},
-			jsl.RepeatedTagInPropertiesErr("a"),
+			jsl.ErrRepeatedTagInProperties("a"),
 			jsl.FormDiscriminator,
 		},
 		{

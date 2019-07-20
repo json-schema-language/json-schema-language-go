@@ -5,36 +5,36 @@ import (
 	"fmt"
 )
 
-var InvalidFormErr = errors.New("jsl: ambiguous or invalid schema form")
-var NonPropertiesMappingErr = errors.New("jsl: value of discriminator mapping is not of properties form")
-var MaxDepthExceededErr = errors.New("jsl: maximum evaluation depth exceeded")
+var ErrInvalidForm = errors.New("jsl: ambiguous or invalid schema form")
+var ErrNonPropertiesMapping = errors.New("jsl: value of discriminator mapping is not of properties form")
+var ErrMaxDepthExceeded = errors.New("jsl: maximum evaluation depth exceeded")
 
-type NoSuchDefinitionErr string
+type ErrNoSuchDefinition string
 
-func (e NoSuchDefinitionErr) Error() string {
+func (e ErrNoSuchDefinition) Error() string {
 	return fmt.Sprintf("jsl: no such definition: %s", e)
 }
 
-type InvalidTypeErr string
+type ErrInvalidType string
 
-func (e InvalidTypeErr) Error() string {
+func (e ErrInvalidType) Error() string {
 	return fmt.Sprintf("jsl: no such type: %s", e)
 }
 
-type RepeatedEnumValueErr string
+type ErrRepeatedEnumValue string
 
-func (e RepeatedEnumValueErr) Error() string {
+func (e ErrRepeatedEnumValue) Error() string {
 	return fmt.Sprintf("jsl: repeated enum value: %s", e)
 }
 
-type RepeatedPropertyErr string
+type ErrRepeatedProperty string
 
-func (e RepeatedPropertyErr) Error() string {
+func (e ErrRepeatedProperty) Error() string {
 	return fmt.Sprintf("jsl: repeated property in properties and optionalProperties: %s", e)
 }
 
-type RepeatedTagInPropertiesErr string
+type ErrRepeatedTagInProperties string
 
-func (e RepeatedTagInPropertiesErr) Error() string {
+func (e ErrRepeatedTagInProperties) Error() string {
 	return fmt.Sprintf("jsl: discriminator tag repeated in properties or optionalProperties: %s", e)
 }

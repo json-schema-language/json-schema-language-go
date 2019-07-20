@@ -25,7 +25,7 @@ func (vm *vm) validate(schema *Schema, instance *interface{}, parentTag *string)
 		// Nothing to be done. Empty never fails.
 	case FormRef:
 		if len(vm.SchemaTokens) == vm.MaxDepth {
-			return MaxDepthExceededErr
+			return ErrMaxDepthExceeded
 		}
 
 		refdSchema := vm.RootSchema.Definitions[*schema.Ref]
