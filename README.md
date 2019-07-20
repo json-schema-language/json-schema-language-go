@@ -2,9 +2,6 @@
 
 > Documentation on godoc.org: https://godoc.org/github.com/json-schema-language/json-schema-language-go
 
-[badge]: https://godoc.org/github.com/json-schema-language/json-schema-language-go?status.svg
-[docs]: https://godoc.org/github.com/json-schema-language/json-schema-language-go
-
 This package is a Golang implementation of **JSON Schema Langugage**. You can
 use this package to:
 
@@ -28,8 +25,8 @@ website][jsl-website] for other tooling built on JSON Schema Language.
 
 ## Usage
 
-See [the docs] for more detailed usage, but at a high level, here's how you
-parse schemas and validate input data against them:
+See [the docs][docs] for more detailed usage, but at a high level, here's how
+you parse schemas and validate input data against them:
 
 ```golang
 import (
@@ -97,3 +94,7 @@ func main() error {
   fmt.Println(resultBad.Errors[2].InstancePath, resultBad.Errors[2].SchemaPath)
 }
 ```
+
+[badge]: https://godoc.org/github.com/json-schema-language/json-schema-language-go?status.svg
+[docs]: https://godoc.org/github.com/json-schema-language/json-schema-language-go
+[jsl-website]: https://json-schema-language.github.io/
