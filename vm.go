@@ -11,7 +11,7 @@ type vm struct {
 	MaxErrors               int
 	MaxDepth                int
 	StrictInstanceSemantics bool
-	RootSchema              *Schema
+	RootSchema              Schema
 	InstanceTokens          []string
 	SchemaTokens            [][]string
 	Errors                  []ValidationError
@@ -19,7 +19,7 @@ type vm struct {
 
 var errMaxErrors = errors.New("jsl internal: max errors reached")
 
-func (vm *vm) validate(schema *Schema, instance *interface{}, parentTag *string) error {
+func (vm *vm) validate(schema Schema, instance interface{}, parentTag *string) error {
 	switch schema.Form() {
 	case FormEmpty:
 		// Nothing to be done. Empty never fails.
@@ -31,7 +31,7 @@ func (vm *vm) validate(schema *Schema, instance *interface{}, parentTag *string)
 		refdSchema := vm.RootSchema.Definitions[*schema.Ref]
 		vm.SchemaTokens = append(vm.SchemaTokens, []string{"definitions", *schema.Ref})
 
-		if err := vm.validate(&refdSchema, instance, nil); err != nil {
+		if err := vm.validate(refdSchema, instance, nil); err != nil {
 			return err
 		}
 
@@ -39,7 +39,7 @@ func (vm *vm) validate(schema *Schema, instance *interface{}, parentTag *string)
 	case FormType:
 		switch schema.Type {
 		case TypeBoolean:
-			if _, ok := (*instance).(bool); !ok {
+			if _, ok := instance.(bool); !ok {
 				vm.pushSchemaToken("type")
 				if err := vm.pushErr(); err != nil {
 					return err
@@ -47,7 +47,7 @@ func (vm *vm) validate(schema *Schema, instance *interface{}, parentTag *string)
 				vm.popSchemaToken()
 			}
 		case TypeNumber, TypeFloat32, TypeFloat64:
-			if _, ok := (*instance).(float64); !ok {
+			if _, ok := instance.(float64); !ok {
 				vm.pushSchemaToken("type")
 				if err := vm.pushErr(); err != nil {
 					return err
@@ -87,7 +87,7 @@ func (vm *vm) validate(schema *Schema, instance *interface{}, parentTag *string)
 				return err
 			}
 		case TypeString:
-			if _, ok := (*instance).(string); !ok {
+			if _, ok := instance.(string); !ok {
 				vm.pushSchemaToken("type")
 				if err := vm.pushErr(); err != nil {
 					return err
@@ -95,7 +95,7 @@ func (vm *vm) validate(schema *Schema, instance *interface{}, parentTag *string)
 				vm.popSchemaToken()
 			}
 		case TypeTimestamp:
-			if s, ok := (*instance).(string); ok {
+			if s, ok := instance.(string); ok {
 				if _, err := time.Parse(time.RFC3339, s); err != nil {
 					vm.pushSchemaToken("type")
 					if err := vm.pushErr(); err != nil {
@@ -112,7 +112,7 @@ func (vm *vm) validate(schema *Schema, instance *interface{}, parentTag *string)
 			}
 		}
 	case FormEnum:
-		if s, ok := (*instance).(string); ok {
+		if s, ok := instance.(string); ok {
 			found := false
 			for _, val := range schema.Enum {
 				if val == s {
@@ -135,11 +135,11 @@ func (vm *vm) validate(schema *Schema, instance *interface{}, parentTag *string)
 			vm.popSchemaToken()
 		}
 	case FormElements:
-		if arr, ok := (*instance).([]interface{}); ok {
+		if arr, ok := instance.([]interface{}); ok {
 			vm.pushSchemaToken("elements")
 			for i, elem := range arr {
 				vm.pushInstanceToken(strconv.Itoa(i))
-				if err := vm.validate(schema.Elements, &elem, nil); err != nil {
+				if err := vm.validate(*schema.Elements, elem, nil); err != nil {
 					return err
 				}
 				vm.popInstanceToken()
@@ -153,14 +153,14 @@ func (vm *vm) validate(schema *Schema, instance *interface{}, parentTag *string)
 			vm.popSchemaToken()
 		}
 	case FormProperties:
-		if obj, ok := (*instance).(map[string]interface{}); ok {
+		if obj, ok := instance.(map[string]interface{}); ok {
 			vm.pushSchemaToken("properties")
 			for property, subSchema := range schema.RequiredProperties {
 				vm.pushSchemaToken(property)
 
 				if val, ok := obj[property]; ok {
 					vm.pushInstanceToken(property)
-					if err := vm.validate(&subSchema, &val, nil); err != nil {
+					if err := vm.validate(subSchema, val, nil); err != nil {
 						return err
 					}
 					vm.popInstanceToken()
@@ -180,7 +180,7 @@ func (vm *vm) validate(schema *Schema, instance *interface{}, parentTag *string)
 
 				if val, ok := obj[property]; ok {
 					vm.pushInstanceToken(property)
-					if err := vm.validate(&subSchema, &val, nil); err != nil {
+					if err := vm.validate(subSchema, val, nil); err != nil {
 						return err
 					}
 					vm.popInstanceToken()
@@ -236,11 +236,11 @@ func (vm *vm) validate(schema *Schema, instance *interface{}, parentTag *string)
 			vm.popSchemaToken()
 		}
 	case FormValues:
-		if obj, ok := (*instance).(map[string]interface{}); ok {
+		if obj, ok := instance.(map[string]interface{}); ok {
 			vm.pushSchemaToken("values")
 			for k, v := range obj {
 				vm.pushInstanceToken(k)
-				if err := vm.validate(schema.Values, &v, nil); err != nil {
+				if err := vm.validate(*schema.Values, v, nil); err != nil {
 					return err
 				}
 				vm.popInstanceToken()
@@ -254,7 +254,7 @@ func (vm *vm) validate(schema *Schema, instance *interface{}, parentTag *string)
 			vm.popSchemaToken()
 		}
 	case FormDiscriminator:
-		if obj, ok := (*instance).(map[string]interface{}); ok {
+		if obj, ok := instance.(map[string]interface{}); ok {
 			vm.pushSchemaToken("discriminator")
 
 			if tagValue, ok := obj[schema.Discriminator.Tag]; ok {
@@ -262,7 +262,7 @@ func (vm *vm) validate(schema *Schema, instance *interface{}, parentTag *string)
 					if subSchema, ok := schema.Discriminator.Mapping[tagValue]; ok {
 						vm.pushSchemaToken("mapping")
 						vm.pushSchemaToken(tagValue)
-						if err := vm.validate(&subSchema, instance, &schema.Discriminator.Tag); err != nil {
+						if err := vm.validate(subSchema, instance, &schema.Discriminator.Tag); err != nil {
 							return err
 						}
 						vm.popSchemaToken()
@@ -306,8 +306,8 @@ func (vm *vm) validate(schema *Schema, instance *interface{}, parentTag *string)
 	return nil
 }
 
-func (vm *vm) checkInt(instance *interface{}, min, max float64) error {
-	if n, ok := (*instance).(float64); ok {
+func (vm *vm) checkInt(instance interface{}, min, max float64) error {
+	if n, ok := instance.(float64); ok {
 		if i, f := math.Modf(n); f != 0.0 || i < min || i > max {
 			vm.pushSchemaToken("type")
 			if err := vm.pushErr(); err != nil {
