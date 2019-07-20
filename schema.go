@@ -1,5 +1,10 @@
 package jsl
 
+// Schema represents a JSON Schema Language schema.
+//
+// This type is designed for conversion to/from JSON. However, not all instances
+// of this type are "correct" schemas as defined by the JSL spec. To verify the
+// correctness of a schema, use Verify.
 type Schema struct {
 	Definitions        map[string]Schema `json:"definitions"`
 	Ref                *string           `json:"ref"`
@@ -12,43 +17,117 @@ type Schema struct {
 	Discriminator      Discriminator     `json:"discriminator"`
 }
 
-type Form int
-
-const (
-	FormEmpty Form = iota
-	FormRef
-	FormType
-	FormEnum
-	FormElements
-	FormProperties
-	FormValues
-	FormDiscriminator
-)
-
+// Type represents the correct values for Type in Schema.
 type Type string
 
 const (
-	TypeBoolean   Type = "boolean"
-	TypeNumber         = "number"
-	TypeFloat32        = "float32"
-	TypeFloat64        = "float64"
-	TypeInt8           = "int8"
-	TypeUint8          = "uint8"
-	TypeInt16          = "int16"
-	TypeUint16         = "uint16"
-	TypeInt32          = "int32"
-	TypeUint32         = "uint32"
-	TypeInt64          = "int64"
-	TypeUint64         = "uint64"
-	TypeString         = "string"
-	TypeTimestamp      = "timestamp"
+	// TypeBoolean represents true and false.
+	TypeBoolean Type = "boolean"
+
+	// TypeNumber represents all numbers.
+	TypeNumber = "number"
+
+	// TypeFloat32 represents a float32.
+	TypeFloat32 = "float32"
+
+	// TypeFloat64 represents a float64.
+	TypeFloat64 = "float64"
+
+	// TypeInt8 represents a int8.
+	TypeInt8 = "int8"
+
+	// TypeUint8 represents a uint8.
+	TypeUint8 = "uint8"
+
+	// TypeInt16 represents a int16.
+	TypeInt16 = "int16"
+
+	// TypeUint16 represents a uint16.
+	TypeUint16 = "uint16"
+
+	// TypeInt32 represents a int32.
+	TypeInt32 = "int32"
+
+	// TypeUint32 represents a uint32.
+	TypeUint32 = "uint32"
+
+	// TypeInt64 represents a int64.
+	TypeInt64 = "int64"
+
+	// TypeUint64 represents a uint64.
+	TypeUint64 = "uint64"
+
+	// TypeString represents a string.
+	TypeString = "string"
+
+	// TypeTimestamp represents a string encoding a RFC3339 timestamp.
+	TypeTimestamp = "timestamp"
 )
 
+// Discriminator stores data associated with a schema of the discriminator form.
 type Discriminator struct {
 	Tag     string            `json:"tag"`
 	Mapping map[string]Schema `json:"mapping"`
 }
 
+// Form represents the eight kinds of JSL schemas defined by the spec.
+//
+// All correct schemas conform to exactly one of the eight forms.
+type Form int
+
+const (
+	// FormEmpty represents the "empty" form.
+	FormEmpty Form = iota
+
+	// FormRef represents the "ref" form.
+	FormRef
+
+	// FormType represents the "type" form.
+	FormType
+
+	// FormEnum represents the "enum" form.
+	FormEnum
+
+	// FormElements represents the "elements" form.
+	FormElements
+
+	// FormProperties represents the "properties" form.
+	FormProperties
+
+	// FormValues represents the "values" form.
+	FormValues
+
+	// FormDiscriminator represents the "discriminator" form.
+	FormDiscriminator
+)
+
+// Form determines which form a schema takes on, assuming it is correct.
+//
+// If the Schema is not correct, then this function's return value is not
+// meaningful.
+func (s *Schema) Form() Form {
+	if s.Ref != nil {
+		return FormRef
+	} else if s.Type != "" {
+		return FormType
+	} else if s.Enum != nil {
+		return FormEnum
+	} else if s.Elements != nil {
+		return FormElements
+	} else if s.RequiredProperties != nil || s.OptionalProperties != nil {
+		return FormProperties
+	} else if s.Values != nil {
+		return FormValues
+	} else if s.Discriminator.Mapping != nil {
+		return FormDiscriminator
+	} else {
+		return FormEmpty
+	}
+}
+
+// Verify returns nil if a schema is correct, or an error if it is not. The
+// error contains details on the first encountered problem with the correctness
+// of the schema.
 func (s *Schema) Verify() error {
 	return s.verify(s)
 }
@@ -183,24 +262,4 @@ func (s *Schema) verify(root *Schema) error {
 	}
 
 	return nil
-}
-
-func (s *Schema) Form() Form {
-	if s.Ref != nil {
-		return FormRef
-	} else if s.Type != "" {
-		return FormType
-	} else if s.Enum != nil {
-		return FormEnum
-	} else if s.Elements != nil {
-		return FormElements
-	} else if s.RequiredProperties != nil || s.OptionalProperties != nil {
-		return FormProperties
-	} else if s.Values != nil {
-		return FormValues
-	} else if s.Discriminator.Mapping != nil {
-		return FormDiscriminator
-	} else {
-		return FormEmpty
-	}
 }
