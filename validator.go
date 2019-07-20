@@ -15,7 +15,7 @@ type ValidationError struct {
 	SchemaPath   []string
 }
 
-func (v *Validator) Validate(schema *Schema, instance *interface{}) (ValidationResult, error) {
+func (v *Validator) Validate(schema *Schema, instance interface{}) (ValidationResult, error) {
 	vm := vm{
 		MaxErrors:               v.MaxErrors,
 		MaxDepth:                v.MaxDepth,
@@ -25,7 +25,7 @@ func (v *Validator) Validate(schema *Schema, instance *interface{}) (ValidationR
 		SchemaTokens:            [][]string{[]string{}},
 	}
 
-	if err := vm.validate(schema, instance, nil); err != nil {
+	if err := vm.validate(schema, &instance, nil); err != nil && err != errMaxErrors {
 		return ValidationResult{}, err
 	}
 

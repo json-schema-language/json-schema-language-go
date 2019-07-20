@@ -68,7 +68,7 @@ func TestSpec(t *testing.T) {
 
 					for i, instance := range tt.Instances {
 						t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
-							result, err := validator.Validate(&tt.Schema, &instance.Instance)
+							result, err := validator.Validate(&tt.Schema, instance.Instance)
 							assert.NoError(t, err)
 
 							// Stringify result's errors into JSON Pointers for comparison
@@ -91,4 +91,27 @@ func TestSpec(t *testing.T) {
 
 			return nil
 		}))
+}
+
+func TestMaxErrors(t *testing.T) {
+	validator := jsl.Validator{MaxErrors: 3}
+	schema := jsl.Schema{Elements: &jsl.Schema{Type: jsl.TypeBoolean}}
+	instance := []interface{}{nil, nil, nil, nil, nil}
+
+	result, err := validator.Validate(&schema, instance)
+	assert.NoError(t, err)
+	assert.Equal(t, 3, len(result.Errors))
+}
+
+func TestMaxDepth(t *testing.T) {
+	validator := jsl.Validator{MaxDepth: 3}
+	schema := jsl.Schema{
+		Definitions: map[string]jsl.Schema{
+			"": jsl.Schema{Ref: strptr("")},
+		},
+		Ref: strptr(""),
+	}
+
+	_, err := validator.Validate(&schema, nil)
+	assert.Equal(t, err, jsl.MaxDepthExceededErr)
 }

@@ -1,6 +1,7 @@
 package jsl
 
 import (
+	"errors"
 	"math"
 	"strconv"
 	"time"
@@ -15,6 +16,8 @@ type vm struct {
 	SchemaTokens            [][]string
 	Errors                  []ValidationError
 }
+
+var errMaxErrors = errors.New("jsl internal: max errors reached")
 
 func (vm *vm) validate(schema *Schema, instance *interface{}, parentTag *string) error {
 	switch schema.Form() {
@@ -351,6 +354,10 @@ func (vm *vm) pushErr() error {
 		InstancePath: instanceTokens,
 		SchemaPath:   schemaTokens,
 	})
+
+	if len(vm.Errors) == vm.MaxErrors {
+		return errMaxErrors
+	}
 
 	return nil
 }
